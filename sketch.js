@@ -1,5 +1,5 @@
 
-var debug = true;
+var debug = false
 
 var garden;
 
@@ -13,8 +13,7 @@ function draw() {
   // ellipse(50, 50, 80, 80);
   if (mouseIsPressed) {
     let word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
-    print('try to put a word')
-    if (!garden.overlapWord(word)) {
+    if (garden.canAddWord(word)) {
       garden.addWord(word);
     }
   }
@@ -47,18 +46,27 @@ Garden.prototype.addWord = function(word) {
   this.words.push(word)
 }
 
+Garden.prototype.canAddWord = function(word) {
+  return this.inBounds(word) && !this.overlapWord(word);
+}
+
+Garden.prototype.inBounds = function(word) {
+  let bbox = word.getBbox()
+  print('checking bounds')
+  let inBounds = !(bbox.x < 0 || bbox.y < 0 ||
+           bbox.x + bbox.w > this.w || 
+           bbox.y + bbox.h > this.h);
+  print(inBounds)
+  return inBounds
+}
+
 // returns true iff given word would overlap with a word in the garden
 Garden.prototype.overlapWord = function(word) {
   for (let i = 0; i < this.words.length; i++) {
     if (this.words[i].overlap(word)) {
-      print('overlap!')
-      print(word.getBbox())
-      print(this.words[i].getBbox())
       return true;
     }
   }
-  print('no overlap!')
-  print(word.getBbox())
   return false;
 }
 
@@ -114,7 +122,6 @@ Word.prototype.overlap = function(word) {
   // https://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
   if (la <= rb && ra >= lb && ta <= bb && ba >= tb) {
     this.debug = true
-    print('word ebug!')
     return true;
   } else {
     this.debug = false
@@ -135,7 +142,6 @@ Word.prototype.draw = function() {
     let bbox = this.getBbox()
     noFill()
     if (this.debug) {
-      print('drawing debug word')
       stroke(color(0, 255, 0))
     }
     else {
