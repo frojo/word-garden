@@ -14,12 +14,6 @@ function draw() {
   // ellipse(50, 50, 80, 80);
 }
 
-function mousePressed() {
-
-  garden.addWord(mouseX, mouseY, wordTypes.DEFAULT)
-
-}
-
 
 // the universe that handles simulation steps
 Garden = function(w, h) {
@@ -45,10 +39,8 @@ Garden.prototype.render = function() {
   }
 }
 
-Garden.prototype.addWord = function(x, y, type) {
+Garden.prototype.addWord = function(word) {
   // idk how the fuck
-  //
-  word = new Word(x, y, type)
   this.words.push(word)
 
 }
