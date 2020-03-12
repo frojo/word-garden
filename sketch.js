@@ -1,6 +1,5 @@
 
-// list of rigidbodies in the scene
-var bodies;
+var debug = true;
 
 var garden;
 
@@ -12,6 +11,10 @@ function draw() {
   garden.render()
 
   // ellipse(50, 50, 80, 80);
+  if (mouseIsPressed) {
+    let word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
+    garden.addWord(word);
+  }
 }
 
 
@@ -35,7 +38,7 @@ Garden = function(w, h) {
 
 Garden.prototype.render = function() {
   for (let i = 0; i < this.words.length; i++) {
-    word.draw()
+    this.words[i].draw()
   }
 }
 
@@ -52,11 +55,11 @@ Garden.prototype.update = function() {
 const wordTypes = {
   DEFAULT: {
     text: 'word',
-    color: 200,
+    color: [0, 0, 0],
   },
   EARTH: {
     text: 'earth',
-    color: 200,
+    color: [59, 29, 0],
   }
 }
 
@@ -65,8 +68,9 @@ Word = function(x, y, type) {
   this.x = x;
   this.y = y;
   this.type = type;
+  this.text = type.text;
 
-
+  this.color = color(type.color[0], type.color[1], type.color[2]);
   
   // make a box2D physics object around it
   let text = this.type.text;
@@ -75,10 +79,23 @@ Word = function(x, y, type) {
   // ok supposedly we have the bbox there
 };
 
-
-// need to have word types
+Word.prototype.getBbox = function() {
+  return garden.font.textBounds(this.text, 
+                                this.x, this.y, this.fontSize)
+}
 
 
 Word.prototype.draw = function() {
+  // draw the text
+  fill(this.color)
+  noStroke()
   text(this.type.text, this.x, this.y)
+
+  if (debug) {
+    // draw a red debug bounding box
+    let bbox = this.getBbox()
+    noFill()
+    stroke(color(255, 0, 0))
+    rect(bbox.x, bbox.y, bbox.w, bbox.h)
+  }
 };
