@@ -13,7 +13,10 @@ function draw() {
   // ellipse(50, 50, 80, 80);
   if (mouseIsPressed) {
     let word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
-    garden.addWord(word);
+    print('try to put a word')
+    if (!garden.overlapWord(word)) {
+      garden.addWord(word);
+    }
   }
 }
 
@@ -26,9 +29,7 @@ Garden = function(w, h) {
   this.h = h
 
   this.font = loadFont('assets/times-new-roman.ttf')
-  print(this.font)
   this.fontSize = 32;
-  print(this.font)
   
   createCanvas(640, 640);
   background(220);
@@ -43,10 +44,24 @@ Garden.prototype.render = function() {
 }
 
 Garden.prototype.addWord = function(word) {
-  // idk how the fuck
   this.words.push(word)
-
 }
+
+// returns true iff given word would overlap with a word in the garden
+Garden.prototype.overlapWord = function(word) {
+  for (let i = 0; i < this.words.length; i++) {
+    if (this.words[i].overlap(word)) {
+      print('overlap!')
+      print(word.getBbox())
+      print(this.words[i].getBbox())
+      return true;
+    }
+  }
+  print('no overlap!')
+  print(word.getBbox())
+  return false;
+}
+
 
 Garden.prototype.update = function() {
 }
@@ -69,19 +84,43 @@ Word = function(x, y, type) {
   this.y = y;
   this.type = type;
   this.text = type.text;
-
   this.color = color(type.color[0], type.color[1], type.color[2]);
-  
-  // make a box2D physics object around it
-  let text = this.type.text;
-  let bbox = garden.font.textBounds(text, this.x, this.y, this.fontSize)
 
-  // ok supposedly we have the bbox there
+  // used for some debugging
+  this.debug = false
 };
 
 Word.prototype.getBbox = function() {
   return garden.font.textBounds(this.text, 
                                 this.x, this.y, this.fontSize)
+}
+
+Word.prototype.overlap = function(word) {
+  let bboxa = this.getBbox()
+  let bboxb = word.getBbox()
+
+
+  let la = bboxa.x
+  let ra = bboxa.x + bboxa.w
+  let ta = bboxa.y
+  let ba = bboxa.y + bboxa.h
+
+  let lb = bboxb.x
+  let rb = bboxb.x + bboxb.w
+  let tb = bboxb.y
+  let bb = bboxb.y + bboxb.h
+
+  // thank u stackoverlfow
+  // https://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
+  if (la <= rb && ra >= lb && ta <= bb && ba >= tb) {
+    this.debug = true
+    print('word ebug!')
+    return true;
+  } else {
+    this.debug = false
+    return false;
+  }
+
 }
 
 
@@ -95,7 +134,13 @@ Word.prototype.draw = function() {
     // draw a red debug bounding box
     let bbox = this.getBbox()
     noFill()
-    stroke(color(255, 0, 0))
+    if (this.debug) {
+      print('drawing debug word')
+      stroke(color(0, 255, 0))
+    }
+    else {
+      stroke(color(255, 0, 0))
+    }
     rect(bbox.x, bbox.y, bbox.w, bbox.h)
   }
 };
