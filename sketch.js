@@ -36,14 +36,16 @@ Garden = function(w, h) {
 
   this.font = loadFont('assets/times-new-roman.ttf')
   this.fontSize = 32;
+
+  this.bg_col = color(220);
   
   createCanvas(640, 640);
-  background(220);
   textFont(this.font);
   textSize(this.fontSize)
 }
 
 Garden.prototype.render = function() {
+  background(this.bg_col)
   for (let i = 0; i < this.words.length; i++) {
     this.words[i].draw()
   }
@@ -68,7 +70,7 @@ Garden.prototype.inBounds = function(word) {
 // returns true iff given word would overlap with a word in the garden
 Garden.prototype.overlapWord = function(word) {
   for (let i = 0; i < this.words.length; i++) {
-    if (this.words[i].overlap(word)) {
+    if (this.words[i] != word && this.words[i].overlap(word)) {
       return true;
     }
   }
@@ -165,8 +167,10 @@ Word.prototype.draw = function() {
 
 Word.prototype.update = function() {
   // try to make it fall, unless it collides with something
-  //
-  print('updating word')
   this.y += 1
-
+  print('in bounds: ' + garden.inBounds(this))
+  print('overlaps a word: ' + garden.overlapWord(this))
+  if (!garden.inBounds(this) || garden.overlapWord(this)) {
+    this.y -= 1
+  }
 }
