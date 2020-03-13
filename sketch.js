@@ -8,15 +8,22 @@ function setup() {
 }
 
 function draw() {
+  garden.update()
   garden.render()
 
   // ellipse(50, 50, 80, 80);
   if (mouseIsPressed) {
-    let word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
+    let word;
+    if (mouseButton == LEFT) {
+      word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
+    } else if (mouseButton == RIGHT) {
+      word = new Word(mouseX, mouseY, wordTypes.TEST_LONG)
+    }
     if (garden.canAddWord(word)) {
       garden.addWord(word);
     }
   }
+
 }
 
 
@@ -52,11 +59,9 @@ Garden.prototype.canAddWord = function(word) {
 
 Garden.prototype.inBounds = function(word) {
   let bbox = word.getBbox()
-  print('checking bounds')
   let inBounds = !(bbox.x < 0 || bbox.y < 0 ||
            bbox.x + bbox.w > this.w || 
            bbox.y + bbox.h > this.h);
-  print(inBounds)
   return inBounds
 }
 
@@ -72,12 +77,19 @@ Garden.prototype.overlapWord = function(word) {
 
 
 Garden.prototype.update = function() {
+  for (let i = 0; i < this.words.length; i++) {
+    this.words[i].update()
+  }
 }
 
 
 const wordTypes = {
   DEFAULT: {
     text: 'word',
+    color: [0, 0, 0],
+  },
+  TEST_LONG: {
+    text: 'longerword',
     color: [0, 0, 0],
   },
   EARTH: {
@@ -150,3 +162,11 @@ Word.prototype.draw = function() {
     rect(bbox.x, bbox.y, bbox.w, bbox.h)
   }
 };
+
+Word.prototype.update = function() {
+  // try to make it fall, unless it collides with something
+  //
+  print('updating word')
+  this.y += 1
+
+}
