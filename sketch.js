@@ -11,16 +11,13 @@ function draw() {
   garden.update()
   garden.render()
 
-  // ellipse(50, 50, 80, 80);
   if (mouseIsPressed) {
     let word = new Word(mouseX, mouseY, garden.selectedWordType)
     if (garden.canAddWord(word)) {
       garden.addWord(word);
     }
   }
-
 }
-
 
 // the universe that handles simulation steps
 Garden = function(w, h) {
@@ -81,20 +78,25 @@ Garden.prototype.inBounds = function(word) {
   return inBounds
 }
 
-// returns true iff given word would overlap with a word in the garden
+// returns null if no overlap
+// returns the overlapping word if there is an overlap
 Garden.prototype.overlapWord = function(word) {
   for (let i = 0; i < this.words.length; i++) {
     if (this.words[i] != word && this.words[i].overlap(word)) {
-      return true;
+      return this.words[i];
     }
   }
-  return false;
+  return null;
 }
 
 Garden.prototype.update = function() {
   for (let i = 0; i < this.words.length; i++) {
     this.words[i].update()
   }
+}
+
+Garden.prototype.startPlant = function(earth) {
+
 }
 
 // todo: make these button callbacks not global functions
@@ -150,7 +152,6 @@ Word.prototype.overlap = function(word) {
   let bboxa = this.getBbox()
   let bboxb = word.getBbox()
 
-
   let la = bboxa.x
   let ra = bboxa.x + bboxa.w
   let ta = bboxa.y
@@ -164,7 +165,6 @@ Word.prototype.overlap = function(word) {
   // thank u stackoverlfow
   // https://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
   if (la <= rb && ra >= lb && ta <= bb && ba >= tb) {
-    this.debug = true
     return true;
   } else {
     this.debug = false
@@ -172,7 +172,6 @@ Word.prototype.overlap = function(word) {
   }
 
 }
-
 
 Word.prototype.draw = function() {
   // draw the text
@@ -200,4 +199,48 @@ Word.prototype.update = function() {
   if (!garden.inBounds(this) || garden.overlapWord(this)) {
     this.y -= 1
   }
+
+  // todo: can optimize this by making it compare indices instead of strings
+  switch(this.text) {
+    case 'earth':
+      break;
+    case 'seed':
+      break;
+    case 'water':
+      this.updateWater()
+      break;
+  }
+
 }
+
+Word.prototype.updateWater = function() {
+  // check if we're touching a seed, that is touching earth
+  // if so, delete the seed, and start growing a plant from the earth
+  
+
+  // problem: what if the earth is under some other earth or thing?
+  // should the plant just delete the earth above it? yeah I think so
+  //
+  let touching = []
+
+  let seed = this.restingOn()
+  if (seed && seed.text == 'seed') {
+    let earth = seed.restingOn()
+    if (earth && earth.text == 'earth') {
+      garden.startPlant(earth)
+    }
+  }
+
+}
+
+// are we resting on a word? returns that word, or null
+Word.prototype.restingOn = function() {
+  this.y += 1;
+  let wordUnder = garden.overlapWord(this);
+  this.y -= 1;
+  return wordUnder;
+}
+
+
+
+
