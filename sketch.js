@@ -13,12 +13,7 @@ function draw() {
 
   // ellipse(50, 50, 80, 80);
   if (mouseIsPressed) {
-    let word;
-    if (mouseButton == LEFT) {
-      word = new Word(mouseX, mouseY, wordTypes.DEFAULT)
-    } else if (mouseButton == RIGHT) {
-      word = new Word(mouseX, mouseY, wordTypes.TEST_LONG)
-    }
+    let word = new Word(mouseX, mouseY, garden.selectedWordType)
     if (garden.canAddWord(word)) {
       garden.addWord(word);
     }
@@ -39,9 +34,28 @@ Garden = function(w, h) {
 
   this.bg_col = color(220);
   
-  createCanvas(640, 640);
+  this.canvas = createCanvas(640, 640);
+  this.canvas.parent(document.getElementById('sketch-holder'))
+
+  var toolbar = document.getElementById('toolbar')
+
+  // set up garden toolbar
+  // clear button
+  createButton('Clear').parent(toolbar).mousePressed(() => clearGarden());
+
+  // types of words
+  createButton('earth').parent(toolbar).mousePressed(
+    () => selectWord(wordTypes.EARTH));
+  createButton('seed').parent(toolbar).mousePressed(
+    () => selectWord(wordTypes.SEED));
+  createButton('water').parent(toolbar).mousePressed(
+    () => selectWord(wordTypes.WATER));
+
   textFont(this.font);
   textSize(this.fontSize)
+
+  // default to earth
+  this.selectedWordType = wordTypes.EARTH;
 }
 
 Garden.prototype.render = function() {
@@ -77,13 +91,21 @@ Garden.prototype.overlapWord = function(word) {
   return false;
 }
 
-
 Garden.prototype.update = function() {
   for (let i = 0; i < this.words.length; i++) {
     this.words[i].update()
   }
 }
 
+// todo: make these button callbacks not global functions
+// (should be Garden class functions)
+function clearGarden() {
+  garden.words = [];
+}
+
+function selectWord(wordType) {
+  garden.selectedWordType = wordType;
+}
 
 const wordTypes = {
   DEFAULT: {
@@ -97,9 +119,16 @@ const wordTypes = {
   EARTH: {
     text: 'earth',
     color: [59, 29, 0],
+  },
+  SEED: {
+    text: 'seed',
+    color: [235, 235, 19],
+  },
+  WATER: {
+    text: 'water',
+    color: [26, 68, 235],
   }
 }
-
 
 Word = function(x, y, type) {
   this.x = x;
@@ -168,8 +197,6 @@ Word.prototype.draw = function() {
 Word.prototype.update = function() {
   // try to make it fall, unless it collides with something
   this.y += 1
-  print('in bounds: ' + garden.inBounds(this))
-  print('overlaps a word: ' + garden.overlapWord(this))
   if (!garden.inBounds(this) || garden.overlapWord(this)) {
     this.y -= 1
   }
