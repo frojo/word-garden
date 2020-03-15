@@ -66,6 +66,16 @@ Garden.prototype.addWord = function(word) {
   this.words.push(word)
 }
 
+Garden.prototype.removeWord = function(word) {
+  let i = 0;
+  for (; i < this.words.length; i++) {
+    if (Object.is(this.words[i], word)) {
+      break;
+    }
+  }
+  this.words.splice(i, 1)
+}
+
 Garden.prototype.canAddWord = function(word) {
   return this.inBounds(word) && !this.overlapWord(word);
 }
@@ -221,13 +231,20 @@ Word.prototype.updateWater = function() {
   // problem: what if the earth is under some other earth or thing?
   // should the plant just delete the earth above it? yeah I think so
   //
-  let touching = []
+  // are we resting on something?
+  let underThis = this.restingOn()
 
-  let seed = this.restingOn()
-  if (seed && seed.text == 'seed') {
-    let earth = seed.restingOn()
-    if (earth && earth.text == 'earth') {
-      garden.startPlant(earth)
+  // if water touches something, it disappears
+  if (underThis) {
+    garden.removeWord(this)
+  }
+
+  // if water is on a seed, which is on a earth, starts growing a plant!
+  if (underThis && underThis.text == 'seed') {
+    let underSeed = underThis.restingOn()
+    if (underSeed && underSeed.text == 'earth') {
+      garden.removeWord(underThis)
+      garden.startPlant(underSeed)
     }
   }
 
