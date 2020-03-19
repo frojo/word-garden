@@ -10,9 +10,7 @@ var font;
 const fontSize = 32;
 
 function preload() {
-
   font = loadFont('assets/times-new-roman.ttf');
-
 }
 
 function setup() {
@@ -194,26 +192,18 @@ Word = function(x, y, type) {
   this.color = color(type.color[0], type.color[1], type.color[2]);
 
 
-  print(font)
-  print(BboxAlignedText)
   this.bbox = new BboxAlignedText(font, this.text, fontSize);
-
-
-  // some words, like "stalk" are rotated 90 degrees
-  this.rotated = type.rotated;
+  // some words (like stalk) are rotated 90 degrees
+  if (type.rotated) {
+    this.bbox.setRotation(-PI / 2);
+  }
 
   // used for some debugging
   this.debug = false;
 };
 
 Word.prototype.getBbox = function() {
-  if (this.rotated) {
-    return garden.font.textBounds(this.text, 
-                                this.x, this.y, this.fontSize)
-  } else {
-    return garden.font.textBounds(this.text, 
-                                this.x, this.y, this.fontSize)
-  }
+  return this.bbox.getBbox(this.x, this.y);
 }
 
 Word.prototype.overlap = function(word) {
@@ -246,30 +236,20 @@ Word.prototype.draw = function() {
 
   // if (this.rotated) {
   // }
+  //
+
   
   push()
-  translate(this.x, this.y)
-  if (this.rotated) {
-    rotate(- PI / 2.0);
-  }
+  // translate(this.x, this.y)
+  // if (this.rotated) {
+  //   rotate(- PI / 2.0);
+  // }
   fill(this.color)
   noStroke()
-  text(this.type.text, 0, 0)
+  this.bbox.draw(this.x, this.y, debug);
+  // text(this.type.text, 0, 0)
   pop()
-  
 
-  if (debug) {
-    // draw a red debug bounding box
-    let bbox = this.getBbox()
-    noFill()
-    if (this.debug) {
-      stroke(color(0, 255, 0))
-    }
-    else {
-      stroke(color(255, 0, 0))
-    }
-    rect(bbox.x, bbox.y, bbox.w, bbox.h)
-  }
 };
 
 Word.prototype.update = function() {
