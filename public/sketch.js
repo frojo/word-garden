@@ -1,6 +1,7 @@
 
 // var BboxText = require("p5-bbox-aligned-text");
 
+
 var debug = true
 
 var garden;
@@ -194,8 +195,8 @@ Word = function(x, y, type) {
 
 
   print(font)
-  font
-  this.bbox = BboxAlignedText(font, this.text, fontSize);
+  print(BboxAlignedText)
+  this.bbox = new BboxAlignedText(font, this.text, fontSize);
 
 
   // some words, like "stalk" are rotated 90 degrees
