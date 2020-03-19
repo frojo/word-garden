@@ -1,0 +1,24 @@
+{
+  "name": "word-garden",
+  "version": "1.0.0",
+  "description": "word garden",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frojo/word-garden.git"
+  },
+  "author": "fran",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/frojo/word-garden/issues"
+  },
+  "homepage": "https://github.com/frojo/word-garden#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "p5-bbox-aligned-text": "^1.3.0"
+  }
+}
