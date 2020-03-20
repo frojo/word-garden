@@ -22,12 +22,16 @@ function draw() {
   if (mouseIsPressed) {
     let word;
     if (debug) {
-      word = new Word(mouseX, mouseY, wordTypes.STALK)
+      word = new Word(mouseX, mouseY, wordTypes.EARTH)
+      if (garden.canAddWord(word)) {
+        garden.addWord(word);
+	garden.startPlant(word);
+      }
     } else {
       word = new Word(mouseX, mouseY, garden.selectedWordType)
-    }
-    if (garden.canAddWord(word)) {
-      garden.addWord(word);
+      if (garden.canAddWord(word)) {
+        garden.addWord(word);
+      }
     }
   }
 }
@@ -127,11 +131,25 @@ Garden.prototype.update = function() {
 
 Garden.prototype.startPlant = function(earth) {
   // spawn a stalk on top of the earth
-  // make it like sideways
+  print('starting a plant')
+  // calculate where stalk should be
+  // if we want it to rest on the middle of the earth
+  // but we draw it from top left
+  // and it's going to be rotated
   //
+  let stalk = new Word(0, 0, wordTypes.STALK);
+  let stalkBbox = stalk.getBbox();
 
-  let stalk = new Word(mouseX, mouseY, wordTypes.STALK);
+  let earthBbox = earth.getBbox();
 
+  // i'm not even going to explain why these calculations work. ok fine
+  // it has to do with how the stalk isn't reeeeeally rotated. it just
+  // looks like it. so really when we spawn it, it's spawned as if it wasn't
+  // rotated...
+  stalk.x = earthBbox.x + earthBbox.w/2 + stalkBbox.w/2;
+  stalk.y = earthBbox.y;
+
+  garden.addWord(stalk);
 }
 
 // todo: make these button callbacks not global functions
@@ -228,7 +246,6 @@ Word.prototype.overlap = function(word) {
   if (la <= rb && ra >= lb && ta <= bb && ba >= tb) {
     return true;
   } else {
-    this.debug = false
     return false;
   }
 
@@ -259,7 +276,14 @@ Word.prototype.draw = function() {
     stroke(color(255, 0, 0));
     let bbox = this.getBbox();
     rect(bbox.x, bbox.y, bbox.w, bbox.h);
+    if (this.debug) {
+      // noFill();
+      // stroke(color(255, 0, 0));
+      // ellipse(this.topmid.x, this.topmid.y, 5);
+    }
+    pop();
   }
+
 
 };
 
