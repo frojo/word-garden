@@ -42,7 +42,6 @@ Garden = function(w, h) {
   this.w = w
   this.h = h
 
-  this.font = font;
   this.fontSize = fontSize;
 
   this.bg_col = color(220);
@@ -64,7 +63,7 @@ Garden = function(w, h) {
   createButton('water').parent(toolbar).mousePressed(
     () => selectWord(wordTypes.WATER));
 
-  textFont(this.font);
+  textFont(font);
   textSize(this.fontSize)
 
   // default to earth
@@ -191,19 +190,18 @@ Word = function(x, y, type) {
   this.text = type.text;
   this.color = color(type.color[0], type.color[1], type.color[2]);
 
+  this.rotated = type.rotated;
 
-  this.bbox = new BboxAlignedText(font, this.text, fontSize);
-  // some words (like stalk) are rotated 90 degrees
-  if (type.rotated) {
-    this.bbox.setRotation(-PI / 2);
-  }
 
   // used for some debugging
   this.debug = false;
 };
 
 Word.prototype.getBbox = function() {
-  return this.bbox.getBbox(this.x, this.y);
+  // kind of a hack. yay p5
+  let bounds = font.textBounds(this.text, this.x, this.y, this.fontSize);
+
+  return bounds;
 }
 
 Word.prototype.overlap = function(word) {
@@ -240,15 +238,23 @@ Word.prototype.draw = function() {
 
   
   push()
-  // translate(this.x, this.y)
-  // if (this.rotated) {
-  //   rotate(- PI / 2.0);
-  // }
+  translate(this.x, this.y)
+  if (this.rotated) {
+    rotate(- PI / 2.0);
+  }
   fill(this.color)
   noStroke()
-  this.bbox.draw(this.x, this.y, debug);
-  // text(this.type.text, 0, 0)
+  text(this.type.text, 0, 0)
   pop()
+
+  if (debug) {
+    // draw bounds
+    push();
+    noFill();
+    stroke(color(255, 0, 0));
+    let bbox = this.getBbox();
+    rect(bbox.x, bbox.y, bbox.w, bbox.h);
+  }
 
 };
 
