@@ -1,7 +1,4 @@
 
-// var BboxText = require("p5-bbox-aligned-text");
-
-
 var debug = true
 
 var garden;
@@ -135,9 +132,6 @@ Garden.prototype.startPlant = function(earth) {
 
   let stalk = new Word(mouseX, mouseY, wordTypes.STALK);
 
-
-  
-
 }
 
 // todo: make these button callbacks not global functions
@@ -201,7 +195,18 @@ Word.prototype.getBbox = function() {
   // kind of a hack. yay p5
   let bounds = font.textBounds(this.text, this.x, this.y, this.fontSize);
 
-  return bounds;
+  if (this.rotated) {
+    let newBounds = {
+      x: bounds.x - bounds.h,
+      y: bounds.y + bounds.h - bounds.w,
+      w: bounds.h,
+      h: bounds.w,
+    }
+    return newBounds;
+  } else {
+    return bounds;
+  }
+    
 }
 
 Word.prototype.overlap = function(word) {
