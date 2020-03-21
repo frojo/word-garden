@@ -12,6 +12,16 @@ function preload() {
 
 function setup() {
   garden = new Garden(640, 640)
+
+
+  if (debug) {
+    let earth = new Word(320, 600, wordTypes.EARTH);
+    if (garden.canAddWord(earth)) {
+      garden.addWord(earth);
+      let plant = new Plant();
+      plant.start(earth);
+    }
+  }
   
 }
 
@@ -22,10 +32,15 @@ function draw() {
   if (mouseIsPressed) {
     let word;
     if (debug) {
-      word = new Word(mouseX, mouseY, wordTypes.EARTH)
+      // word = new Word(mouseX, mouseY, wordTypes.EARTH)
+      // if (garden.canAddWord(word)) {
+      //   garden.addWord(word);
+      //   let plant = new Plant();
+      //   plant.start(word);
+      // }
+      word = new Word(mouseX, mouseY, wordTypes.WATER)
       if (garden.canAddWord(word)) {
         garden.addWord(word);
-	garden.startPlant(word);
       }
     } else {
       word = new Word(mouseX, mouseY, garden.selectedWordType)
@@ -122,34 +137,11 @@ Garden.prototype.update = function() {
   for (let i = 0; i < this.words.length; i++) {
     this.words[i].update()
     if (debug && this.steps % 100 == 0) {
-      print(this.words[i])
+      // print(this.words[i])
     }
   }
 
   this.steps += 1
-}
-
-Garden.prototype.startPlant = function(earth) {
-  // spawn a stalk on top of the earth
-  print('starting a plant')
-  // calculate where stalk should be
-  // if we want it to rest on the middle of the earth
-  // but we draw it from top left
-  // and it's going to be rotated
-  //
-  let stalk = new Word(0, 0, wordTypes.STALK);
-  let stalkBbox = stalk.getBbox();
-
-  let earthBbox = earth.getBbox();
-
-  // i'm not even going to explain why these calculations work. ok fine
-  // it has to do with how the stalk isn't reeeeeally rotated. it just
-  // looks like it. so really when we spawn it, it's spawned as if it wasn't
-  // rotated...
-  stalk.x = earthBbox.x + earthBbox.w/2 + stalkBbox.w/2;
-  stalk.y = earthBbox.y;
-
-  garden.addWord(stalk);
 }
 
 // todo: make these button callbacks not global functions
@@ -203,7 +195,6 @@ Word = function(x, y, type) {
   this.color = color(type.color[0], type.color[1], type.color[2]);
 
   this.rotated = type.rotated;
-
 
   // used for some debugging
   this.debug = false;
@@ -331,9 +322,6 @@ Word.prototype.updateWater = function() {
     this.y -= 1
   }
 
-  // check if we're touching a seed, that is touching earth
-  // if so, delete the seed, and start growing a plant from the earth
-  //
   // are we resting on something?
   let underThis = this.restingOn()
 
@@ -346,11 +334,19 @@ Word.prototype.updateWater = function() {
   if (underThis && underThis.text == 'seed') {
     let underSeed = underThis.restingOn()
     if (underSeed && underSeed.text == 'earth') {
+      // delete the seed
       garden.removeWord(underThis)
-      garden.startPlant(underSeed)
+
+      let plant = new Plant();
+      plant.start(underSeed);
     }
   }
 
+  // if water is on a stalk, it continues to grow the plant
+  if (underThis && underThis.text == 'stalk') {
+    let stalk = underThis;
+    stalk.plant.grow();
+  }
 }
 
 Word.prototype.updateStalk = function() {
@@ -370,6 +366,38 @@ Word.prototype.restingOn = function() {
   return wordUnder;
 }
 
+// in the future, we could have different plant types
+
+// a composite of words with some more meta info
+Plant = function() {
+  this.lastWord = null;
+
+  this.step = 0;
+}
+
+
+Plant.prototype.start = function(earth) {
+  // spawn a stalk on top of the earth
+  let stalk = new Word(0, 0, wordTypes.STALK);
+  let stalkBbox = stalk.getBbox();
+  let earthBbox = earth.getBbox();
+
+  // i'm not even going to explain why these calculations work. ok fine
+  // it has to do with how the stalk isn't reeeeeally rotated. it just
+  // looks like it. so really when we spawn it, it's spawned as if it wasn't
+  // rotated...
+  stalk.x = earthBbox.x + earthBbox.w/2 + stalkBbox.w/2;
+  stalk.y = earthBbox.y;
+
+  this.lastWord = stalk;
+  stalk.plant = this;
+  garden.addWord(stalk);
+}
+
+Plant.prototype.grow = function(earth) {
+
+  print('grow plant more!')
+}
 
 
 
