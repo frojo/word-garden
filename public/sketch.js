@@ -1,5 +1,5 @@
 
-var debug = true
+var debug = false;
 
 var garden;
 
@@ -137,7 +137,7 @@ Garden.prototype.update = function() {
   for (let i = 0; i < this.words.length; i++) {
     this.words[i].update()
     if (debug && this.steps % 100 == 0) {
-      // print(this.words[i])
+      print(this.words[i])
     }
   }
 
@@ -182,8 +182,18 @@ const wordTypes = {
   },
   STALK: {
     text: 'stalk',
-    color: [102, 153, 0],
+    color: [50, 171, 78],
     rotated: true,
+  },
+  LEAF: {
+    text: 'leaf',
+    color: [102, 171, 50],
+    rotated: false,
+  },
+  PEDAL: {
+    text: 'pedal',
+    color: [145, 49, 148],
+    rotated: false,
   }
 }
 
@@ -243,13 +253,8 @@ Word.prototype.overlap = function(word) {
 }
 
 Word.prototype.draw = function() {
-  // draw the text
 
-  // if (this.rotated) {
-  // }
-  //
-
-  
+  // draw text
   push()
   translate(this.x, this.y)
   if (this.rotated) {
@@ -272,6 +277,9 @@ Word.prototype.draw = function() {
       // stroke(color(255, 0, 0));
       // ellipse(this.topmid.x, this.topmid.y, 5);
     }
+    // draw a elipse at x and y
+    ellipse(this.x, this.y, 5);
+    ellipse(bbox.x, bbox.y, 5);
     pop();
   }
 
@@ -344,17 +352,14 @@ Word.prototype.updateWater = function() {
 
   // if water is on a stalk, it continues to grow the plant
   if (underThis && underThis.text == 'stalk') {
+    print('grow grow');
     let stalk = underThis;
     stalk.plant.grow();
   }
 }
 
 Word.prototype.updateStalk = function() {
-  // try to make it fall, unless it collides with something
-  this.y += 1
-  if (!garden.inBounds(this) || garden.overlapWord(this)) {
-    this.y -= 1
-  }
+  // note: stalks don't fall. unlike stocks during corona
 
 }
 
@@ -388,15 +393,69 @@ Plant.prototype.start = function(earth) {
   // rotated...
   stalk.x = earthBbox.x + earthBbox.w/2 + stalkBbox.w/2;
   stalk.y = earthBbox.y;
-
-  this.lastWord = stalk;
   stalk.plant = this;
   garden.addWord(stalk);
+
+  this.lastWord = stalk;
+  this.step += 1
 }
 
 Plant.prototype.grow = function(earth) {
+  if (this.step == 0) {
 
-  print('grow plant more!')
+
+  // add a stalk, with a leaf
+  } else if (this.step == 1) {
+    let firstStalk = this.lastWord;
+    let firstBbox = firstStalk.getBbox();
+
+    // add a new stalk on top of the first talk
+    let newStalk = new Word(0, 0, wordTypes.STALK);
+    let newBbox = newStalk.getBbox();
+    newStalk.x = firstBbox.x + newBbox.w
+    newStalk.y = firstBbox.y
+    newStalk.plant = this;
+    garden.addWord(newStalk);
+
+    // add a lil leaf going off the first stalk
+    let leaf = new Word(0, 0, wordTypes.LEAF);
+    leaf.x = firstBbox.x + firstBbox.w;
+    leaf.y = firstBbox.y;
+    leaf.plant = this;
+    garden.addWord(leaf)
+
+    this.lastWord = newStalk;
+    this.step += 1
+
+  // add flower pedals
+  } else if (this.step == 2) {
+    print('turn into a flower!');
+    let stalk = this.lastWord;
+    let stalkBbox = stalk.getBbox();
+
+    // add some pedals on top!
+    // let's start with just two for now, symetrically on top
+    let pedal1 = new Word(0, 0, wordTypes.PEDAL);
+    let pedal1Bbox = pedal1.getBbox();
+    let pedal2 = new Word(0, 0, wordTypes.PEDAL);
+    let pedal2Bbox = pedal2.getBbox();
+
+    let pedal_y = stalk.y - pedal1Bbox.h;
+    let pedal_xmid = stalk.x + stalkBbox.w/2;
+
+    pedal1.x = pedal_xmid;
+    pedal1.y = pedal_y;
+
+    print(stalk.y)
+
+    print(pedal1.y);
+    print(pedal1Bbox.h);
+
+
+    pedal1.plant = this;
+    garden.addWord(pedal1);
+    this.step += 1
+  } 
 }
 
 
