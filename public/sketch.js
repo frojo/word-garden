@@ -1,5 +1,5 @@
 
-var debug = false;
+var debug = true;
 
 var garden;
 
@@ -80,7 +80,8 @@ Garden = function(w, h) {
     () => selectWord(wordTypes.WATER));
 
   textFont(font);
-  textSize(this.fontSize)
+  textSize(this.fontSize);
+  textAlign(LEFT, BOTTOM);
 
   // default to earth
   this.selectedWordType = wordTypes.EARTH;
@@ -212,9 +213,14 @@ Word = function(x, y, type) {
 
 Word.prototype.getBbox = function() {
   // kind of a hack. yay p5
-  let bounds = font.textBounds(this.text, this.x, this.y, this.fontSize);
 
   if (this.rotated) {
+    // textAlign() affects what textBounds() returns
+    // p5 is wild yall
+    push()
+    textAlign(LEFT, BASELINE);
+    let bounds = font.textBounds(this.text, this.x, this.y, this.fontSize);
+    pop()
     let newBounds = {
       x: bounds.x - bounds.h,
       y: bounds.y + bounds.h - bounds.w,
@@ -223,7 +229,7 @@ Word.prototype.getBbox = function() {
     }
     return newBounds;
   } else {
-    return bounds;
+    return font.textBounds(this.text, this.x, this.y, this.fontSize);
   }
     
 }
@@ -258,6 +264,7 @@ Word.prototype.draw = function() {
   push()
   translate(this.x, this.y)
   if (this.rotated) {
+    textAlign(LEFT, BASELINE);
     rotate(- PI / 2.0);
   }
   fill(this.color)
@@ -278,7 +285,9 @@ Word.prototype.draw = function() {
       // ellipse(this.topmid.x, this.topmid.y, 5);
     }
     // draw a elipse at x and y
+    stroke(color(0, 255, 0));
     ellipse(this.x, this.y, 5);
+    stroke(color(0, 0, 255));
     ellipse(bbox.x, bbox.y, 5);
     pop();
   }
@@ -440,8 +449,8 @@ Plant.prototype.grow = function(earth) {
     let pedal2 = new Word(0, 0, wordTypes.PEDAL);
     let pedal2Bbox = pedal2.getBbox();
 
-    let pedal_y = stalk.y - pedal1Bbox.h;
     let pedal_xmid = stalk.x + stalkBbox.w/2;
+    let pedal_y = stalk.y - pedal1Bbox.h;
 
     pedal1.x = pedal_xmid;
     pedal1.y = pedal_y;
