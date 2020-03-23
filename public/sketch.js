@@ -1,5 +1,5 @@
 
-var debug = true;
+var debug = false;
 
 var garden;
 
@@ -62,7 +62,7 @@ Garden = function(w, h) {
 
   this.bg_col = color(220);
   
-  this.canvas = createCanvas(640, 640);
+  this.canvas = createCanvas(w, h);
   this.canvas.parent(document.getElementById('sketch-holder'))
 
   var toolbar = document.getElementById('toolbar')
@@ -335,15 +335,17 @@ Word.prototype.updateSeed = function() {
 Word.prototype.updateWater = function() {
   // try to make it fall, unless it collides with something
   this.y += 1
+  let collided = false;
   if (!garden.inBounds(this) || garden.overlapWord(this)) {
+    collided = true;
     this.y -= 1
   }
 
   // are we resting on something?
   let underThis = this.restingOn()
 
-  // if water touches something, it disappears
-  if (underThis) {
+  // if water lands on something, it disappears
+  if (underThis || collided) {
     garden.removeWord(this)
   }
 
@@ -361,7 +363,6 @@ Word.prototype.updateWater = function() {
 
   // if water is on a stalk, it continues to grow the plant
   if (underThis && underThis.text == 'stalk') {
-    print('grow grow');
     let stalk = underThis;
     stalk.plant.grow();
   }
@@ -380,10 +381,23 @@ Word.prototype.restingOn = function() {
   return wordUnder;
 }
 
+const pedalColors = [
+  [145, 49, 148], // purple
+  [230, 23, 126], // pink?
+  [232, 21, 42], // red (like roses)
+  [60, 35, 204], // blue
+  [255, 255, 242], // cream
+  [247, 239, 89] // yellow
+]
+
 // in the future, we could have different plant types
+//
 
 // a composite of words with some more meta info
 Plant = function() {
+  // this.pedalCol = color(145, 49, 148);
+  this.pedalCol = random(pedalColors);
+
   this.lastWord = null;
 
   this.step = 0;
@@ -428,8 +442,9 @@ Plant.prototype.grow = function(earth) {
 
     // add a lil leaf going off the first stalk
     let leaf = new Word(0, 0, wordTypes.LEAF);
-    leaf.x = firstBbox.x + firstBbox.w;
-    leaf.y = firstBbox.y;
+    let leafBbox = leaf.getBbox();
+    leaf.x = firstBbox.x - leafBbox.w;
+    leaf.y = firstBbox.y + leafBbox.h;
     leaf.plant = this;
     garden.addWord(leaf)
 
@@ -442,27 +457,41 @@ Plant.prototype.grow = function(earth) {
     let stalk = this.lastWord;
     let stalkBbox = stalk.getBbox();
 
+    // add another lil leaf going off the second stalk
+    let leaf = new Word(0, 0, wordTypes.LEAF);
+    let leafBbox = leaf.getBbox();
+    leaf.x = stalkBbox.x + stalkBbox.w;
+    leaf.y = stalkBbox.y + stalkBbox.h/2 + leafBbox.h;
+    leaf.plant = this;
+    garden.addWord(leaf)
+
     // add some pedals on top!
     // let's start with just two for now, symetrically on top
+
+    let pedal_xmid = stalkBbox.x + stalkBbox.w/2;
+    let pedal_y = stalkBbox.y
+
     let pedal1 = new Word(0, 0, wordTypes.PEDAL);
-    let pedal1Bbox = pedal1.getBbox();
-    let pedal2 = new Word(0, 0, wordTypes.PEDAL);
-    let pedal2Bbox = pedal2.getBbox();
-
-    let pedal_xmid = stalk.x + stalkBbox.w/2;
-    let pedal_y = stalk.y - pedal1Bbox.h;
-
-    pedal1.x = pedal_xmid;
+    pedal1.x = pedal_xmid - pedal1.getBbox().w;
     pedal1.y = pedal_y;
-
-    print(stalk.y)
-
-    print(pedal1.y);
-    print(pedal1Bbox.h);
-
-
+    pedal1.color = this.pedalCol
     pedal1.plant = this;
     garden.addWord(pedal1);
+
+    let pedal2 = new Word(0, 0, wordTypes.PEDAL);
+    pedal2.x = pedal_xmid;
+    pedal2.y = pedal_y;
+    pedal2.color = this.pedalCol
+    pedal2.plant = this;
+    garden.addWord(pedal2);
+
+    let pedal3 = new Word(0, 0, wordTypes.PEDAL);
+    pedal3.x = pedal_xmid - pedal3.getBbox().w/2;
+    pedal3.y = stalkBbox.y - pedal3.getBbox().h;
+    pedal3.color = this.pedalCol
+    pedal3.plant = this;
+    garden.addWord(pedal3);
+
     this.step += 1
   } 
 }
